@@ -35,7 +35,7 @@ public class Main extends Application {
     private Direction currentDir = Direction.RIGHT;
     private Direction nextDir = Direction.RIGHT; // to prevent reversing into body immediately
     private boolean gameOver = false;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public static class Point {
         int x;
@@ -47,8 +47,8 @@ public class Main extends Application {
         }
     }
 
-    private List<Point> snake = new ArrayList<>();
-    private Point food = new Point(0, 0);
+    private final List<Point> snake = new ArrayList<>();
+    private final Point food = new Point(0, 0);
     private int score = 0;
 
     @Override
@@ -139,15 +139,15 @@ public class Main extends Application {
         if (gameOver) {
             gc.setFill(Color.RED);
             gc.setFont(new Font("Arial", 50));
-            gc.fillText("GAME OVER", SCREEN_W / 2 - 140, SCREEN_H / 2);
+            gc.fillText("GAME OVER", (double) SCREEN_W / 2 - 140, (double) SCREEN_H / 2);
             gc.setFont(new Font("Arial", 20));
-            gc.fillText("Score: " + score + "  Press R to Restart", SCREEN_W / 2 - 130, SCREEN_H / 2 + 40);
+            gc.fillText("Score: " + score + "  Press R to Restart", (double) SCREEN_W / 2 - 130, (double) SCREEN_H / 2 + 40);
             return;
         }
 
         currentDir = nextDir;
 
-        Point head = snake.get(0);
+        Point head = snake.getFirst();
         Point newHead = new Point(head.x, head.y);
 
         switch (currentDir) {
@@ -179,7 +179,7 @@ public class Main extends Application {
             }
         }
 
-        snake.add(0, newHead);
+        snake.addFirst(newHead);
 
         // Eat food
         if (newHead.x == food.x && newHead.y == food.y) {
@@ -190,7 +190,7 @@ public class Main extends Application {
             spawnFood();
         } else {
             // Remove tail if didn't eat
-            snake.remove(snake.size() - 1);
+            snake.removeLast();
         }
 
         // Render
