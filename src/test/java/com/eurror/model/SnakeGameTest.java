@@ -98,6 +98,73 @@ class SnakeGameTest {
         assertTrue(game.isGameOver());
     }
 
+    @Test
+    void buffersRapidTurnsAcrossConsecutiveTicks() throws Exception {
+        SnakeGame game = createGameWithSnake(Direction.RIGHT, List.of(
+                new Point(5, 5),
+                new Point(4, 5),
+                new Point(3, 5)
+        ));
+
+        game.setNextDirection(Direction.UP);
+        game.setNextDirection(Direction.LEFT);
+
+        game.tick();
+
+        Point firstHead = game.getSnake().getFirst();
+        assertEquals(5, firstHead.x);
+        assertEquals(4, firstHead.y);
+        assertFalse(game.isGameOver());
+
+        game.tick();
+
+        Point secondHead = game.getSnake().getFirst();
+        assertEquals(4, secondHead.x);
+        assertEquals(4, secondHead.y);
+        assertFalse(game.isGameOver());
+    }
+
+    @Test
+    void ignoresReverseTurnAgainstQueuedDirection() throws Exception {
+        SnakeGame game = createGameWithSnake(Direction.RIGHT, List.of(
+                new Point(5, 5),
+                new Point(4, 5),
+                new Point(3, 5)
+        ));
+
+        game.setNextDirection(Direction.UP);
+        game.setNextDirection(Direction.DOWN);
+
+        game.tick();
+        Point firstHead = game.getSnake().getFirst();
+        assertEquals(5, firstHead.x);
+        assertEquals(4, firstHead.y);
+
+        game.tick();
+        Point secondHead = game.getSnake().getFirst();
+        assertEquals(5, secondHead.x);
+        assertEquals(3, secondHead.y);
+        assertFalse(game.isGameOver());
+    }
+
+    @Test
+    void ignoresImmediateReverseTurn() throws Exception {
+        SnakeGame game = createGameWithSnake(Direction.RIGHT, List.of(
+                new Point(5, 5),
+                new Point(4, 5),
+                new Point(3, 5)
+        ));
+
+        game.setNextDirection(Direction.LEFT);
+
+        game.tick();
+
+        Point head = game.getSnake().getFirst();
+        assertEquals(6, head.x);
+        assertEquals(5, head.y);
+        assertFalse(game.isGameOver());
+    }
+
     private SnakeGame createGameWithSnake(Direction direction, List<Point> points) throws Exception {
         SnakeGame game = new SnakeGame();
         game.getSnake().clear();
@@ -113,9 +180,9 @@ class SnakeGameTest {
         currentDir.setAccessible(true);
         currentDir.set(game, direction);
 
-        Field nextDir = SnakeGame.class.getDeclaredField("nextDir");
-        nextDir.setAccessible(true);
-        nextDir.set(game, direction);
+        Field pendingDirections = SnakeGame.class.getDeclaredField("pendingDirections");
+        pendingDirections.setAccessible(true);
+        ((java.util.Deque<?>) pendingDirections.get(game)).clear();
     }
 }
 

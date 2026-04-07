@@ -1,19 +1,22 @@
 package com.eurror.model;
 
 import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 
 public class SnakeGame {
     public static final int WIDTH = 24;
     public static final int HEIGHT = 24;
+    private static final int MAX_PENDING_TURNS = 2;
 
     private int speed = 5;
     private Direction currentDir = Direction.RIGHT;
-    private Direction nextDir = Direction.RIGHT;
     private boolean gameOver = false;
     private final Random random = new Random();
-    
+    private final Deque<Direction> pendingDirections = new ArrayDeque<>();
+
     private final List<Point> snake = new ArrayList<>();
     private final Point food = new Point(0, 0);
     private int score = 0;
@@ -29,7 +32,7 @@ public class SnakeGame {
         snake.add(new Point(WIDTH / 2 - 2, HEIGHT / 2));
 
         currentDir = Direction.RIGHT;
-        nextDir = Direction.RIGHT;
+        pendingDirections.clear();
         gameOver = false;
         score = 0;
         speed = 5;
@@ -62,7 +65,9 @@ public class SnakeGame {
             return;
         }
 
-        currentDir = nextDir;
+        if (!pendingDirections.isEmpty()) {
+            currentDir = pendingDirections.removeFirst();
+        }
 
         Point head = snake.getFirst();
         Point newHead = new Point(head.x, head.y);
@@ -109,15 +114,23 @@ public class SnakeGame {
     }
     
     public void setNextDirection(Direction dir) {
-        if (dir == Direction.UP && currentDir != Direction.DOWN) {
-            nextDir = Direction.UP;
-        } else if (dir == Direction.DOWN && currentDir != Direction.UP) {
-            nextDir = Direction.DOWN;
-        } else if (dir == Direction.LEFT && currentDir != Direction.RIGHT) {
-            nextDir = Direction.LEFT;
-        } else if (dir == Direction.RIGHT && currentDir != Direction.LEFT) {
-            nextDir = Direction.RIGHT;
+        Direction lastPlannedDirection = pendingDirections.peekLast();
+        if (lastPlannedDirection == null) {
+            lastPlannedDirection = currentDir;
         }
+
+        if (dir == lastPlannedDirection || isOpposite(dir, lastPlannedDirection) || pendingDirections.size() >= MAX_PENDING_TURNS) {
+            return;
+        }
+
+        pendingDirections.addLast(dir);
+    }
+
+    private boolean isOpposite(Direction first, Direction second) {
+        return (first == Direction.UP && second == Direction.DOWN)
+                || (first == Direction.DOWN && second == Direction.UP)
+                || (first == Direction.LEFT && second == Direction.RIGHT)
+                || (first == Direction.RIGHT && second == Direction.LEFT);
     }
 
     public boolean isGameOver() { return gameOver; }
