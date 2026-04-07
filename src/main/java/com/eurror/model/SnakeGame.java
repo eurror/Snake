@@ -82,11 +82,8 @@ public class SnakeGame {
                 break;
         }
 
-        // Wall collision
-        if (newHead.x < 0 || newHead.x >= WIDTH || newHead.y < 0 || newHead.y >= HEIGHT) {
-            gameOver = true;
-            return;
-        }
+        newHead.x = (newHead.x + WIDTH) % WIDTH;
+        newHead.y = (newHead.y + HEIGHT) % HEIGHT;
 
         // Body collision
         for (Point p : snake) {
